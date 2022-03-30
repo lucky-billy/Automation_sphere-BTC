@@ -1,8 +1,4 @@
 ﻿#include "qybluetoothclient.h"
-#include <QDebug>
-
-// 蓝牙串口通信服务的UUID码 "00001101-0000-1000-8000-00805F9B34FB"
-static const QLatin1String serviceUuid("e8e10f95-1a70-4b27-9ccf-02010264e9c8");
 
 QYBlueToothClient::QYBlueToothClient(QObject *parent) : QObject(parent)
 {
@@ -27,6 +23,11 @@ void QYBlueToothClient::startDiscovery()
     m_discoveryAgent->start();
 }
 
+bool QYBlueToothClient::isOpen()
+{
+    return m_socket->isOpen();
+}
+
 void QYBlueToothClient::findNewDevice(const QBluetoothDeviceInfo &info)
 {
     QBluetoothDeviceInfo::MajorDeviceClass majorDeviceClass = info.majorDeviceClass();
@@ -36,6 +37,9 @@ void QYBlueToothClient::findNewDevice(const QBluetoothDeviceInfo &info)
         qDebug() << "deviceUuid: " + info.deviceUuid().toString();
 
         if ( !m_socket->isOpen() ) {
+            // 蓝牙串口通信服务的UUID码 "00001101-0000-1000-8000-00805F9B34FB"
+            static const QLatin1String serviceUuid("e8e10f95-1a70-4b27-9ccf-02010264e9c8");
+
             // 连接服务器
             m_socket->connectToService(info.address(), QBluetoothUuid(serviceUuid), QIODevice::ReadWrite);
         }

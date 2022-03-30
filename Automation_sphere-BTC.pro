@@ -34,6 +34,8 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     qybluetoothclient.h
 
+TARGET = Sirius-Sphere
+
 QT += bluetooth
 
 QT += androidextras

@@ -33,7 +33,6 @@
         <file>image/measureA_pressed.png</file>
         <file>image/measureB.png</file>
         <file>image/measureB_pressed.png</file>
-        <file>image/messagebox_bg.png</file>
         <file>image/ng.png</file>
         <file>image/ng_pressed.png</file>
         <file>image/ok.png</file>
@@ -44,5 +43,11 @@
         <file>image/sucker.png</file>
         <file>image/tray.png</file>
         <file>image/unchecked.png</file>
+        <file>image/connected.png</file>
+        <file>image/disconnected.png</file>
+        <file>image/noServer.png</file>
+        <file>image/notConnected.png</file>
+        <file>image/sure.png</file>
+        <file>image/sure_pressed.png</file>
     </qresource>
 </RCC>

@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
+        <file>TransparentMask.qml</file>
     </qresource>
 </RCC>

@@ -16,6 +16,9 @@ public:
     // 开始扫描蓝牙设备
     Q_INVOKABLE void startDiscovery();
 
+    // 判断是否连接成功
+    Q_INVOKABLE bool isOpen();
+
     // 发送数据
     Q_INVOKABLE void sendData(QString data);
 
@@ -28,7 +31,7 @@ protected:
 
 signals:
     // 发送信息给应用层
-    void sendMessage(int type);
+    void sendMessage(int messageType);
 
 private:
     QBluetoothDeviceDiscoveryAgent *m_discoveryAgent;
