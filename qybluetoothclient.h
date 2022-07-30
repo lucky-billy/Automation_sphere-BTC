@@ -13,6 +13,8 @@ class QYBlueToothClient : public QObject
 public:
     explicit QYBlueToothClient(QObject *parent = nullptr);
 
+    ~QYBlueToothClient();
+
     // 开始扫描蓝牙设备
     Q_INVOKABLE void startDiscovery();
 
@@ -21,6 +23,8 @@ public:
 
     // 发送数据
     Q_INVOKABLE void sendData(QString data);
+
+    Q_INVOKABLE void showMessageBox(int type, QString info);
 
 protected:
     // 搜索到设备
@@ -32,6 +36,7 @@ protected:
 signals:
     // 发送信息给应用层
     void sendMessage(int messageType);
+    void callQmlReciveData(QString data);
 
 private:
     QBluetoothDeviceDiscoveryAgent *m_discoveryAgent;

@@ -1,657 +1,759 @@
-import QtQuick 2.12
+﻿import QtQuick 2.12
+import QtQuick.Controls 2.5
 import QtQuick.Window 2.12
+import "./Component"
 
 Window {
     id: root
-    width: Screen.desktopAvailableWidth
-    height: Screen.desktopAvailableHeight
     visible: true
+    width: 860; height: 360
+    color: m_skin.background
 
-    property bool highSpeed: true
-    property int currentIndex: 0
-    property var pw: Screen.desktopAvailableWidth / 840
-    property var ph: Screen.desktopAvailableHeight / 420
+    property var m_skin: Object                         // 皮肤 Object
+    property real itemWidth: 90
+    property real itemHeight: 30
+    property bool isChinese: true
+    property bool isQtRendering: true
+    property int lineWidth: 4                           // 线条宽度，全局适用
+    property int margin: 5                              // 边界宽度，全局适用
+    property bool initCompleted: false
+    property bool ioStateChanged: false
 
-    // 开始扫描蓝牙设备
-    Component.onCompleted: client.startDiscovery()
+    Component.onCompleted: {
+        m_skin = getSkin()
 
+        if ( !client.isOpen() ) {
+            client.startDiscovery()
+            client.showMessageBox(3, "请先扫描连接至服务器 !")
+        }
+    }
+
+    // 接收服务器信息
     Connections {
         target: client
+
         onSendMessage: {
-            switch ( messageType )
-            {
-            case 1:
-                messageBox.type = 1
-                messageBox.visible = true
-                break
-            case 2:
-                if ( !client.isOpen() ) {
-                    messageBox.type = 2
-                    messageBox.visible = true
-                }
-                break
-            case 3:
-                messageBox.type = 3
-                messageBox.visible = true
-                break
-            case 4:
-                messageBox.type = 4
-                messageBox.visible = true
-                break
-            default: break
+            if ( messageType === 1 ) {
+                client.sendData("getSpeedScale")
+                master.enabled = true
+                client.showMessageBox(2, "已成功连接 !")
+            }
+
+            if ( messageType === 2 ) {
+                client.startDiscovery()
+                client.showMessageBox(3, "连接已被关闭，将继续扫描 !")
+                master.enabled = false
+            }
+
+            if ( messageType === 3 && !client.isOpen() ) {
+                client.startDiscovery()
+                client.showMessageBox(3, "未发现有效设备，将继续扫描 !")
+            }
+
+            if ( messageType === 4 ) {
+                client.showMessageBox(3, "请检查连接后再试 !")
+            }
+        }
+
+        onCallQmlReciveData: {
+            var array = data.split(",")
+            var type = array[0]
+
+            // 更新手机端速度比例
+            if ( type === "speedScale" ) {
+                cmb_speedL.currentIndex = Number(array[1])
+                cmb_speedR.currentIndex = Number(array[2])
             }
         }
     }
 
-    // MessageBox
+    // 主界面
     Rectangle {
-        id: messageBox
-        anchors.fill: parent
-        color: "transparent"
-        visible: false
+        id: master
+        y: (parent.height - height) / 2
+        width: parent.width; height: contentCol.height + 20
+        color: m_skin.moduleBarBackground
+        enabled: false
 
-        property int type: 0
+        // 左侧轴标题
+        Rectangle {
+            x: leftaxis.x + 10; y: leftaxis.y - 10; z: leftaxis.z + 1
+            width: lable_l.contentWidth + 10; height: lable_l.contentHeight
+            color: m_skin.moduleBarBackground
 
-        Image {
-            anchors.centerIn: parent
-            width: 520 * pw; height: 350 * ph
-            source: {
-                switch ( messageBox.type )
-                {
-                case 1: return "qrc:/image/connected.png"
-                case 2: return "qrc:/image/disconnected.png"
-                case 3: return "qrc:/image/noServer.png"
-                case 4: return "qrc:/image/notConnected.png"
-                default: break
-                }
+            QYText {
+                id: lable_l
+                width: contentWidth; height: contentHeight
+                elide: Text.ElideNone
+                fontBold: true
+                pixelSize: 16
+                leftPadding: 5
+                text: "左侧轴"
             }
+        }
 
-            Image {
-                z: messageBox_mask.z + 1
-                width: 116 * pw; height: 56 * ph
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 50
-                anchors.horizontalCenter: parent.horizontalCenter
-                source: sure_mouseArea.pressed ? "qrc:/image/sure_pressed.png"
-                                               : "qrc:/image/sure.png"
+        // 左侧轴
+        GroupBox {
+            id: leftaxis
+            x: 10; y: 15
 
-                MouseArea {
-                    id: sure_mouseArea
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    onClicked: {
-                        if ( messageBox.type > 1 ) {
-                            root.close()
-                        } else {
-                            messageBox.visible = false
+            // 操作左侧轴
+            Column {
+                id: column_l
+                spacing: 10
+
+                // 左侧速度选择
+                Row {
+                    spacing: 10
+
+                    QYText {
+                        width: root.itemWidth / 2; height: root.itemHeight
+                        text: "速 度 :"
+                    }
+
+                    QYCombobox {
+                        id: cmb_speedL
+                        width: root.itemWidth; height: root.itemHeight
+                        leftPadding: 10
+                        model: ["高 速", "中 速", "低 速", "超低速"]
+                        font.family: "微软雅黑"
+                        font.pixelSize: 14
+                        currentIndex: 2
+                        onCurrentIndexChanged: {
+                            var msg = "speedScale_L," + currentIndex.toString()
+                            client.sendData(msg)
+                        }
+                    }
+                }
+
+                // X_L
+                Row {
+                    spacing: 10
+
+                    QYText {
+                        width: root.itemWidth / 2; height: root.itemHeight
+                        text: "X : "
+                    }
+
+                    Rectangle {
+                        width: (root.itemWidth - 10) / 2; height: root.itemHeight
+                        radius: 5
+                        color: m_skin.unenableTextColor
+
+                        Image {
+                            anchors.fill: parent
+                            anchors.margins: 5
+                            fillMode: Image.PreserveAspectFit
+                            source: "qrc:/image/Component/LeftSL.png"
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onPressed: {
+                                parent.color = m_skin.buttonPressColor
+                                client.sendData("continuousMove_L_X_Left")
+                            }
+                            onReleased: {
+                                parent.color = m_skin.unenableTextColor
+                                client.sendData("continuousMove_L_X_Stop")
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        width: (root.itemWidth - 10) / 2; height: root.itemHeight
+                        radius: 5
+                        color: m_skin.unenableTextColor
+
+                        Image {
+                            anchors.fill: parent
+                            anchors.margins: 5
+                            fillMode: Image.PreserveAspectFit
+                            source: "qrc:/image/Component/RightSL.png"
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onPressed: {
+                                parent.color = m_skin.buttonPressColor
+                                client.sendData("continuousMove_L_X_Right")
+                            }
+                            onReleased: {
+                                parent.color = m_skin.unenableTextColor
+                                client.sendData("continuousMove_L_X_Stop")
+                            }
+                        }
+                    }
+                }
+
+                // Y_L
+                Row {
+                    spacing: 10
+
+                    QYText {
+                        width: root.itemWidth / 2; height: root.itemHeight
+                        text: "Y : "
+                    }
+
+                    Rectangle {
+                        width: (root.itemWidth - 10) / 2; height: root.itemHeight
+                        radius: 5
+                        color: m_skin.unenableTextColor
+
+                        Image {
+                            anchors.fill: parent
+                            anchors.margins: 5
+                            fillMode: Image.PreserveAspectFit
+                            source: "qrc:/image/Component/UpSL.png"
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onPressed: {
+                                parent.color = m_skin.buttonPressColor
+                                client.sendData("continuousMove_L_Y_Top")
+                            }
+                            onReleased: {
+                                parent.color = m_skin.unenableTextColor
+                                client.sendData("continuousMove_L_Y_Stop")
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        width: (root.itemWidth - 10) / 2; height: root.itemHeight
+                        radius: 5
+                        color: m_skin.unenableTextColor
+
+                        Image {
+                            anchors.fill: parent
+                            anchors.margins: 5
+                            fillMode: Image.PreserveAspectFit
+                            source: "qrc:/image/Component/DownSL.png"
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onPressed: {
+                                parent.color = m_skin.buttonPressColor
+                                client.sendData("continuousMove_L_Y_Bottom")
+                            }
+                            onReleased: {
+                                parent.color = m_skin.unenableTextColor
+                                client.sendData("continuousMove_L_Y_Stop")
+                            }
                         }
                     }
                 }
             }
         }
-    }
 
-    //------------------------------------------------------------------------------
+        // 右侧轴标题
+        Rectangle {
+            x: rightaxis.x + 10; y: rightaxis.y - 10; z: rightaxis.z + 1
+            width: lable_r.contentWidth + 10; height: lable_r.contentHeight
+            color: m_skin.moduleBarBackground
 
-    // bg
-    Image {
-        anchors.fill: parent
-        source: "qrc:/image/bg.png"
-    }
-
-    // Logo
-    Image {
-        x: 20 * pw; y: 330 * ph
-        width: 209 * pw; height: 70 * ph
-        source: "qrc:/image/logo.png"
-    }
-
-    // A
-    Image {
-        x: 788 * pw; y: 20 * ph
-        width: 32 * pw; height: 32 * ph
-        source: "qrc:/image/a.png"
-    }
-
-    // B
-    Image {
-        x: 20 * pw; y: 20 * ph
-        width: 32 * pw; height: 32 * ph
-        source: "qrc:/image/b.png"
-    }
-
-    //------------------------------------------------------------------------------
-
-    // B-up
-    Image {
-        x: 80 * pw; y: 20 * ph
-        width: 64 * ph; height: 64 * ph
-        source: b_up_mouseArea.pressed ? "qrc:/image/b_up_pressed.png" : "qrc:/image/b_up.png"
-
-        MouseArea {
-            id: b_up_mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            onPressed: client.sendData("bup")
-            onReleased: client.sendData("bur")
-        }
-    }
-
-    // B-down
-    Image {
-        x: 80 * pw; y: 140 * ph
-        width: 64 * ph; height: 64 * ph
-        source: b_down_mouseArea.pressed ? "qrc:/image/b_up_pressed.png" : "qrc:/image/b_up.png"
-        rotation: 180
-
-        MouseArea {
-            id: b_down_mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            onPressed: client.sendData("bdp")
-            onReleased: client.sendData("bdr")
-        }
-    }
-
-    // B-left
-    Image {
-        x: 20 * pw; y: 80 * ph
-        width: 64 * ph; height: 64 * ph
-        source: b_left_mouseArea.pressed ? "qrc:/image/b_up_pressed.png" : "qrc:/image/b_up.png"
-        rotation: 270
-
-        MouseArea {
-            id: b_left_mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            onPressed: client.sendData("blp")
-            onReleased: client.sendData("blr")
-        }
-    }
-
-    // B-right
-    Image {
-        x: 140 * pw; y: 80 * ph
-        width: 64 * ph; height: 64 * ph
-        source: b_right_mouseArea.pressed ? "qrc:/image/b_up_pressed.png" : "qrc:/image/b_up.png"
-        rotation: 90
-
-        MouseArea {
-            id: b_right_mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            onPressed: client.sendData("brp")
-            onReleased: client.sendData("brr")
-        }
-    }
-
-    //------------------------------------------------------------------------------
-
-    // A-up
-    Image {
-        x: 696 * pw; y: 20 * ph
-        width: 64 * ph; height: 64 * ph
-        source: a_up_mouseArea.pressed ? "qrc:/image/a_up_pressed.png" : "qrc:/image/a_up.png"
-
-        MouseArea {
-            id: a_up_mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            onPressed: client.sendData("aup")
-            onReleased: client.sendData("aur")
-        }
-    }
-
-    // A-down
-    Image {
-        x: 696 * pw; y: 140 * ph
-        width: 64 * ph; height: 64 * ph
-        source: a_down_mouseArea.pressed ? "qrc:/image/a_up_pressed.png" : "qrc:/image/a_up.png"
-        rotation: 180
-
-        MouseArea {
-            id: a_down_mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            onPressed: client.sendData("adp")
-            onReleased: client.sendData("adr")
-        }
-    }
-
-    // A-left
-    Image {
-        x: 636 * pw; y: 80 * ph
-        width: 64 * ph; height: 64 * ph
-        source: a_left_mouseArea.pressed ? "qrc:/image/a_up_pressed.png" : "qrc:/image/a_up.png"
-        rotation: 270
-
-        MouseArea {
-            id: a_left_mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            onPressed: client.sendData("alp")
-            onReleased: client.sendData("alr")
-        }
-    }
-
-    // A-right
-    Image {
-        x: 756 * pw; y: 80 * ph
-        width: 64 * ph; height: 64 * ph
-        source: a_right_mouseArea.pressed ? "qrc:/image/a_up_pressed.png" : "qrc:/image/a_up.png"
-        rotation: 90
-
-        MouseArea {
-            id: a_right_mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            onPressed: client.sendData("arp")
-            onReleased: client.sendData("arr")
-        }
-    }
-
-    //------------------------------------------------------------------------------
-
-    // OK
-    Image {
-        x: 244 * pw; y: 20 * ph
-        width: 160 * pw; height: 50 * ph
-        source: ok_mouseArea.pressed ? "qrc:/image/ok_pressed.png" : "qrc:/image/ok.png"
-
-        MouseArea {
-            id: ok_mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            onClicked: client.sendData("ok")
-        }
-    }
-
-    // NG
-    Image {
-        x: 244 * pw; y: 80 * ph
-        width: 160 * pw; height: 50 * ph
-        source: ng_mouseArea.pressed ? "qrc:/image/ng_pressed.png" : "qrc:/image/ng.png"
-
-        MouseArea {
-            id: ng_mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            onClicked: client.sendData("ng")
-        }
-    }
-
-    // Flip_left
-    Image {
-        x: 244 * pw; y: 140 * ph
-        width: 160 * pw; height: 50 * ph
-        source: flip_left_mouseArea.pressed ? "qrc:/image/flip_left_pressed.png"
-                                            : "qrc:/image/flip_left.png"
-
-        MouseArea {
-            id: flip_left_mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            onClicked: client.sendData("fl")
-        }
-    }
-
-    // Measure B
-    Image {
-        x: 244 * pw; y: 200 * ph
-        width: 160 * pw; height: 50 * ph
-        source: measureB_mouseArea.pressed ? "qrc:/image/measureB_pressed.png"
-                                           : "qrc:/image/measureB.png"
-
-        MouseArea {
-            id: measureB_mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            onClicked: client.sendData("mb")
-        }
-    }
-
-    //------------------------------------------------------------------------------
-
-    // Reclaim
-    Image {
-        x: 436 * pw; y: 20 * ph
-        width: 160 * pw; height: 50 * ph
-        source: reclaim_mouseArea.pressed ? "qrc:/image/reclaim_pressed.png"
-                                          : "qrc:/image/reclaim.png"
-
-        MouseArea {
-            id: reclaim_mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            onClicked: client.sendData("rc")
-        }
-    }
-
-    // Location
-    Image {
-        x: 436 * pw; y: 80 * ph
-        width: 160 * pw; height: 50 * ph
-        source: location_mouseArea.pressed ? "qrc:/image/location_pressed.png"
-                                           : "qrc:/image/location.png"
-
-        MouseArea {
-            id: location_mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            onClicked: client.sendData("lc")
-        }
-    }
-
-    // Flip_right
-    Image {
-        x: 436 * pw; y: 140 * ph
-        width: 160 * pw; height: 50 * ph
-        source: flip_right_mouseArea.pressed ? "qrc:/image/flip_right_pressed.png"
-                                             : "qrc:/image/flip_right.png"
-
-        MouseArea {
-            id: flip_right_mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            onClicked: client.sendData("fr")
-        }
-    }
-
-    // Measure A
-    Image {
-        x: 436 * pw; y: 200 * ph
-        width: 160 * pw; height: 50 * ph
-        source: measureA_mouseArea.pressed ? "qrc:/image/measureA_pressed.png"
-                                           : "qrc:/image/measureA.png"
-
-        MouseArea {
-            id: measureA_mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            onClicked: client.sendData("ma")
-        }
-    }
-
-    //------------------------------------------------------------------------------
-
-    // High speed
-    Image {
-        x: 40 * pw; y: 234 * ph
-        width: 32 * ph; height: 32 * ph
-        source: highSpeed ? "qrc:/image/checked.png" : "qrc:/image/unchecked.png"
-
-        MouseArea {
-            anchors.fill: parent
-            onClicked: {
-                highSpeed = true
-                client.sendData("hs")
+            QYText {
+                id: lable_r
+                width: contentWidth; height: contentHeight
+                elide: Text.ElideNone
+                fontBold: true
+                pixelSize: 16
+                leftPadding: 5
+                text: "右侧轴"
             }
         }
-    }
 
-    Image {
-        x: 84 * pw; y: 230 * ph
-        width: 100 * pw; height: 40 * ph
-        source: "qrc:/image/high_speed.png"
-    }
+        // 右侧轴
+        GroupBox {
+            id: rightaxis
+            anchors.left: parent.left
+            anchors.leftMargin: 10
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 10
 
-    // Low speed
-    Image {
-        x: 40 * pw; y: 284 * ph
-        width: 32 * ph; height: 32 * ph
-        source: highSpeed ? "qrc:/image/unchecked.png" : "qrc:/image/checked.png"
+            // 操作右侧轴
+            Column {
+                id: column_r
+                spacing: 10
 
-        MouseArea {
-            anchors.fill: parent
-            onClicked: {
-                highSpeed = false
-                client.sendData("ls")
-            }
-        }
-    }
+                // 右侧速度选择
+                Row {
+                    spacing: 10
 
-    Image {
-        x: 84 * pw; y: 280 * ph
-        width: 100 * pw; height: 40 * ph
-        source: "qrc:/image/low_speed.png"
-    }
+                    QYText {
+                        width: root.itemWidth / 2; height: root.itemHeight
+                        text: "速 度 :"
+                    }
 
-    //------------------------------------------------------------------------------
+                    QYCombobox {
+                        id: cmb_speedR
+                        width: root.itemWidth; height: root.itemHeight
+                        leftPadding: 10
+                        model: ["高 速", "中 速", "低 速", "超低速"]
+                        font.family: "微软雅黑"
+                        font.pixelSize: 14
+                        currentIndex: 2
+                        onCurrentIndexChanged: {
+                            var msg = "speedScale_R," + currentIndex.toString()
+                            client.sendData(msg)
+                        }
+                    }
+                }
 
-    // Combobox
-    Image {
-        x: 244 * pw; y: 260 * ph; z: 2
-        width: 180 * pw; height: 40
-        source: "qrc:/image/combobox.png"
+                // X_R
+                Row {
+                    spacing: 10
 
-        // Text
-        Image {
-            x: 14 * pw
-            width: currentIndex < 2 ? 98 * pw : 117 * pw
-            height: 24 * ph
-            anchors.verticalCenter: parent.verticalCenter
-            source: {
-                switch ( currentIndex )
-                {
-                case 0: return "qrc:/image/row.png"
-                case 1: return "qrc:/image/col.png"
-                case 2: return "qrc:/image/tray.png"
-                case 3: return "qrc:/image/sucker.png"
-                default: return ""
+                    QYText {
+                        width: root.itemWidth / 2; height: root.itemHeight
+                        text: "X : "
+                    }
+
+                    Rectangle {
+                        width: (root.itemWidth - 10) / 2; height: root.itemHeight
+                        radius: 5
+                        color: m_skin.unenableTextColor
+
+                        Image {
+                            anchors.fill: parent
+                            anchors.margins: 5
+                            fillMode: Image.PreserveAspectFit
+                            source: "qrc:/image/Component/LeftSL.png"
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onPressed: {
+                                parent.color = m_skin.buttonPressColor
+                                client.sendData("continuousMove_R_X_Left")
+                            }
+                            onReleased: {
+                                parent.color = m_skin.unenableTextColor
+                                client.sendData("continuousMove_R_X_Stop")
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        width: (root.itemWidth - 10) / 2; height: root.itemHeight
+                        radius: 5
+                        color: m_skin.unenableTextColor
+
+                        Image {
+                            anchors.fill: parent
+                            anchors.margins: 5
+                            fillMode: Image.PreserveAspectFit
+                            source: "qrc:/image/Component/RightSL.png"
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onPressed: {
+                                parent.color = m_skin.buttonPressColor
+                                client.sendData("continuousMove_R_X_Right")
+                            }
+                            onReleased: {
+                                parent.color = m_skin.unenableTextColor
+                                client.sendData("continuousMove_R_X_Stop")
+                            }
+                        }
+                    }
+                }
+
+                // Y_R
+                Row {
+                    spacing: 10
+
+                    QYText {
+                        width: root.itemWidth / 2; height: root.itemHeight
+                        text: "Y : "
+                    }
+
+                    Rectangle {
+                        width: (root.itemWidth - 10) / 2; height: root.itemHeight
+                        radius: 5
+                        color: m_skin.unenableTextColor
+
+                        Image {
+                            anchors.fill: parent
+                            anchors.margins: 5
+                            fillMode: Image.PreserveAspectFit
+                            source: "qrc:/image/Component/UpSL.png"
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onPressed: {
+                                parent.color = m_skin.buttonPressColor
+                                client.sendData("continuousMove_R_Y_Top")
+                            }
+                            onReleased: {
+                                parent.color = m_skin.unenableTextColor
+                                client.sendData("continuousMove_R_Y_Stop")
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        width: (root.itemWidth - 10) / 2; height: root.itemHeight
+                        radius: 5
+                        color: m_skin.unenableTextColor
+
+                        Image {
+                            anchors.fill: parent
+                            anchors.margins: 5
+                            fillMode: Image.PreserveAspectFit
+                            source: "qrc:/image/Component/DownSL.png"
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onPressed: {
+                                parent.color = m_skin.buttonPressColor
+                                client.sendData("continuousMove_R_Y_Bottom")
+                            }
+                            onReleased: {
+                                parent.color = m_skin.unenableTextColor
+                                client.sendData("continuousMove_R_Y_Stop")
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        // Arraw
-        Image {
-            x: 146 * pw
-            width: 25 * pw; height: 20 * ph
-            anchors.verticalCenter: parent.verticalCenter
-            source: "qrc:/image/arraw.png"
-            rotation: combobox_dropList.visible ? 180 : 0
-
-            MouseArea {
-                anchors.fill: parent
-                onClicked: combobox_dropList.visible = !combobox_dropList.visible
-            }
+        // Separator line - portrait
+        Rectangle {
+            width: lineWidth; height: parent.height
+            radius: lineWidth
+            anchors.left: parent.left
+            anchors.leftMargin: leftaxis.width + leftaxis.x + 10
+            color: m_skin.separatorLineColor
         }
-    }
-
-    // Combobox-list
-    Image {
-        id: combobox_dropList
-        x: 245 * pw; y: 304 * ph; z: 2
-        width: 180 * pw; height: 100 * pw
-        source: "qrc:/image/combobox_bg.png"
-        visible: false
 
         Column {
-            x: 10 * pw; y: 5 * ph
-            spacing: 5 * ph
+            id: contentCol
+            anchors.top: parent.top
+            anchors.topMargin: 10
+            anchors.left: parent.left
+            anchors.leftMargin: leftaxis.width + leftaxis.x + 10 + lineWidth + margin * 2
+            spacing: 10
 
-            // Row
-            Rectangle {
-                width: 160 * pw; height: 30 * ph
-                radius: 5
-                border.width: 1
-                border.color: "#FFBF00"
-                color: "#FFEFBF"
-                visible: currentIndex != 0
+            // 标定右侧点位
+            Row {
+                spacing: 10
 
-                Image {
-                    x: 10 * pw
-                    width: 98 * pw; height: 24 * ph
-                    anchors.verticalCenter: parent.verticalCenter
-                    source: "qrc:/image/row.png"
+                property real currentX: 0
+                property real currentY: 0
+
+                QYText {
+                    width: root.itemWidth; height: root.itemHeight
+                    text: "右侧点标定 : "
                 }
 
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        currentIndex = 0
-                        combobox_dropList.visible = false
+                QYCombobox {
+                    id: cmb_pos_R
+                    width: root.itemWidth * 1.3; height: root.itemHeight
+                    leftPadding: 10
+                    model: ["初始点", "安全点", "定位点", "测量点", "放料点"]
+                    font.family: "微软雅黑"
+                    font.pixelSize: 14
+                }
+
+                QYButton {
+                    width: root.itemWidth; height: root.itemHeight
+                    content: "移 动"
+                    onSelected: {
+                        var msg = "move_R," + cmb_pos_R.currentIndex.toString()
+                        client.sendData(msg)
+                    }
+                }
+
+                QYButton {
+                    width: root.itemWidth; height: root.itemHeight
+                    content: "保 存"
+                    onSelected: {
+                        var msg = "save_R," + cmb_pos_R.currentIndex.toString()
+                        client.sendData(msg)
                     }
                 }
             }
 
-            // Col
-            Rectangle {
-                width: 160 * pw; height: 30 * ph
-                radius: 5
-                border.width: 1
-                border.color: "#FFBF00"
-                color: "#FFEFBF"
-                visible: currentIndex != 1
+            // 标定左侧点位
+            Row {
+                spacing: 10
 
-                Image {
-                    x: 10 * pw
-                    width: 98 * pw; height: 24 * ph
-                    anchors.verticalCenter: parent.verticalCenter
-                    source: "qrc:/image/col.png"
+                property real currentX: 0
+                property real currentY: 0
+
+                QYText {
+                    width: root.itemWidth; height: root.itemHeight
+                    text: "左侧点标定 : "
                 }
 
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        currentIndex = 1
-                        combobox_dropList.visible = false
+                QYCombobox {
+                    id: cmb_pos_L
+                    width: root.itemWidth * 1.3; height: root.itemHeight
+                    leftPadding: 10
+                    model: ["OK 初始点", "NG 初始点", "测量点", "取料点", "安全点"]
+                    font.family: "微软雅黑"
+                    font.pixelSize: 14
+                }
+
+                QYButton {
+                    width: root.itemWidth; height: root.itemHeight
+                    content: "移 动"
+                    onSelected: {
+                        var msg = "move_L," + cmb_pos_L.currentIndex.toString()
+                        client.sendData(msg)
+                    }
+                }
+
+                QYButton {
+                    width: root.itemWidth; height: root.itemHeight
+                    content: "保 存"
+                    onSelected: {
+                        var msg = "save_L," + cmb_pos_L.currentIndex.toString()
+                        client.sendData(msg)
                     }
                 }
             }
 
-            // Tray
-            Rectangle {
-                width: 160 * pw; height: 30 * ph
-                radius: 5
-                border.width: 1
-                border.color: "#FFBF00"
-                color: "#FFEFBF"
-                visible: currentIndex != 2
+            // 标定镜片/料盘间距
+            Row {
+                spacing: 10
 
-                Image {
-                    x: 10 * pw
-                    width: 117 * pw; height: 24 * ph
-                    anchors.verticalCenter: parent.verticalCenter
-                    source: "qrc:/image/tray.png"
+                QYText {
+                    width: root.itemWidth; height: root.itemHeight
+                    text: "间距标定 : "
                 }
 
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        currentIndex = 2
-                        combobox_dropList.visible = false
+                QYCombobox {
+                    id: cmb_space
+                    width: root.itemWidth * 1.3; height: root.itemHeight
+                    leftPadding: 10
+                    model: ["镜片行间距", "镜片列间距", "料盘行间距", "料盘列间距", "吸盘间距"]
+                    font.family: "微软雅黑"
+                    font.pixelSize: 14
+                }
+
+                // 同心圆 状态标志
+                Rectangle {
+                    width: root.itemHeight; height: root.itemHeight
+                    radius: height
+                    color: "transparent"
+                    border.color: lineSpacingB.color
+                    border.width: 2
+
+                    Rectangle {
+                        id: lineSpacingB
+                        x: root.itemHeight / 4; y: root.itemHeight / 4
+                        width: root.itemHeight / 2; height: root.itemHeight / 2
+                        radius: root.itemHeight / 2
+                        color: m_skin.separatorLineColor
+                    }
+                }
+
+                // 记录第一个对准的位置
+                QYButton {
+                    width: root.itemWidth; height: root.itemHeight
+                    content: "位置 A"
+                    onSelected: {
+                        lineSpacingB.color = "#FFFF00"
+                        var msg = "calibrationPosA," + cmb_space.currentIndex.toString()
+                        client.sendData(msg)
+                    }
+                }
+
+                // 记录移动后对准的第二个位置 并计算出与第一个位置之间的差 即为行间距
+                QYButton {
+                    width: root.itemWidth; height: root.itemHeight
+                    content: "位置 B"
+                    onSelected: {
+                        lineSpacingB.color = "#00FF00"
+                        var msg = "calibrationPosB," + cmb_space.currentIndex.toString()
+                        client.sendData(msg)
                     }
                 }
             }
 
-            // Sucker
-            Rectangle {
-                width: 160 * pw; height: 30 * ph
-                radius: 5
-                border.width: 1
-                border.color: "#FFBF00"
-                color: "#FFEFBF"
-                visible: currentIndex != 3
+            // 定位气缸
+            Row {
+                spacing: 10
 
-                Image {
-                    x: 10 * pw
-                    width: 117 * pw; height: 24 * ph
-                    anchors.verticalCenter: parent.verticalCenter
-                    source: "qrc:/image/sucker.png"
+                QYText {
+                    width: root.itemWidth; height: root.itemHeight
+                    text: "定位气缸 :"
                 }
 
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        currentIndex = 3
-                        combobox_dropList.visible = false
+                QYCheckBoxOppisite {
+                    width: root.itemWidth * 2; height: root.itemHeight
+                    prefix: "夹紧"
+                    suffix: "释放"
+                    onIsCheckedChanged: {
+                        var msg = "IO_locate," + (isChecked ? 1 : 0).toString()
+                        client.sendData(msg)
+                    }
+                }
+            }
+
+            // 翻面气缸
+            Row {
+                spacing: 10
+
+                QYText {
+                    width: root.itemWidth; height: root.itemHeight
+                    text: "翻面气缸 :"
+                }
+
+                QYCheckBoxOppisite {
+                    width: root.itemWidth * 2; height: root.itemHeight
+                    prefix: "向左"
+                    suffix: "向右"
+                    onIsCheckedChanged: {
+                        var msg = "IO_flip," + (isChecked ? 1 : 0).toString()
+                        client.sendData(msg)
+                    }
+                }
+            }
+
+            // 翻面定位
+            Row {
+                spacing: 10
+
+                QYText {
+                    width: root.itemWidth; height: root.itemHeight
+                    text: "翻面定位 :"
+                }
+
+                QYCheckBoxOppisite {
+                    width: root.itemWidth * 2; height: root.itemHeight
+                    prefix: "夹紧"
+                    suffix: "释放"
+                    onIsCheckedChanged: {
+                        var msg = "IO_flip_locate," + (isChecked ? 1 : 0).toString()
+                        client.sendData(msg)
+                    }
+                }
+            }
+
+            // 气缸升降
+            Row {
+                spacing: 10
+
+                QYText {
+                    width: root.itemWidth; height: root.itemHeight
+                    text: "Z 轴气缸 :"
+                }
+
+                QYCombobox {
+                    id: cmb_Cylinder
+                    width: root.itemWidth; height: root.itemHeight
+                    font.family: "微软雅黑"
+                    font.pixelSize: 14
+                    model: ["左", "右"]
+                }
+
+                QYCheckBoxOppisite {
+                    width: root.itemWidth * 2; height: root.itemHeight
+                    prefix: "上升"
+                    suffix: "下降"
+                    onIsCheckedChanged: {
+                        if ( cmb_Cylinder.currentIndex === 0 ) {
+                            var msg = "IO_l_axis_z," + (isChecked ? 1 : 0).toString()
+                        } else {
+                            msg = "IO_r_axis_z," + (isChecked ? 1 : 0).toString()
+                        }
+                        client.sendData(msg)
+                    }
+                }
+            }
+
+            // 真空
+            Row {
+                spacing: 10
+
+                QYText {
+                    width: root.itemWidth; height: root.itemHeight
+                    text: "真 空 :"
+                }
+
+                QYCombobox {
+                    id: cmb_Vacuum
+                    width: root.itemWidth; height: root.itemHeight
+                    font.family: "微软雅黑"
+                    font.pixelSize: 14
+                    model: ["左侧左", "左侧右", "右侧左", "右侧右"]
+                }
+
+                QYCheckBoxOppisite {
+                    width: root.itemWidth * 2; height: root.itemHeight
+                    prefix: "打开"
+                    suffix: "关闭"
+                    onIsCheckedChanged: {
+                        var type = ""
+                        if ( cmb_Vacuum.currentIndex === 0 ) type = "IO_l_l_sucker"
+                        if ( cmb_Vacuum.currentIndex === 1 ) type = "IO_l_r_sucker"
+                        if ( cmb_Vacuum.currentIndex === 2 ) type = "IO_r_l_sucker"
+                        if ( cmb_Vacuum.currentIndex === 3 ) type = "IO_r_r_sucker"
+                        var msg = type + "," + (isChecked ? 1 : 0).toString()
+                        client.sendData(msg)
                     }
                 }
             }
         }
     }
 
-    // Mask
-    TransparentMask {
-        id: mask
-        z: 1
-        anchors.fill: parent
-        visible: combobox_dropList.visible
-        onClose: combobox_dropList.visible = false
+    function getSkin() {
+        var obj = {}
+        obj.menuBarBackground = "#2D2D2D"
+        obj.menuHoverColor = "#646464"
+        obj.menuTextColor = "#FFFFFF"
+        obj.unenableTextColor = "#9B9B9B"
+        obj.actionBackground = "#373737"
+        obj.actionHoverColor = "#4FA0F1"
+
+        // 工具栏
+        obj.toolBarBackground = "#AAAAAA"
+        obj.toolButtonHoverColor = "#999999"
+        obj.toolButtonPressColor = "#777777"
+        obj.toolBarSeparatorLineColor = "#FFFFFF"
+
+        // 功能栏及常用按钮
+        obj.background = "#858585"
+        obj.moduleBarBackground = "#3F3F3F"
+        obj.buttonHoverColor = "#999999"
+        obj.buttonDefaultColor = "#818181"
+        obj.buttonPressColor = "#666666"
+        obj.isDark = true
+
+        // 分割线
+        obj.separatorLineColor = "#707070"
+
+        // 文本提示颜色
+        obj.textPromptColor = "#FFFFFF"
+
+        // 下拉框
+        obj.comboBoxBackground = "#2D2D2D"
+        obj.comboBoxHoverColor = "#4F4F4F"
+        obj.comboBoxPressColor = "#363636"
+
+        // 数据报表
+        obj.tableWidgetItemPressColor = "#696969"
+        obj.tableWidgetSeparatorLineColor = "#CFCFCF"
+
+        // 边框
+        obj.defaultBorderColor = "#9B9B9B"
+        obj.activeBorderColor = "#FFFFFF"
+
+        // 3D视图背景色
+        obj.viewBackgroundIn3D = "#363636"
+
+        // 图片默认背景色
+        obj.imageBackground = "#000000"
+
+        return obj;
     }
-
-    //------------------------------------------------------------------------------
-
-    // Location A
-    Image {
-        x: 450 * pw; y: 260 * ph
-        width: 100 * pw; height: 40 * ph
-        source: locationA_mouseArea.pressed ? "qrc:/image/locationA_pressed.png"
-                                            : "qrc:/image/locationA.png"
-
-        MouseArea {
-            id: locationA_mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            onClicked: {
-                switch ( currentIndex )
-                {
-                case 0: client.sendData("x0"); break
-                case 1: client.sendData("x1"); break
-                case 2: client.sendData("x2"); break
-                case 3: client.sendData("x3"); break
-                default: break
-                }
-            }
-        }
-    }
-
-    // Location B
-    Image {
-        x: 570 * pw; y: 260 * ph
-        width: 100 * pw; height: 40 * ph
-        source: locationB_mouseArea.pressed ? "qrc:/image/locationB_pressed.png"
-                                            : "qrc:/image/locationB.png"
-
-        MouseArea {
-            id: locationB_mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            onClicked: {
-                switch ( currentIndex )
-                {
-                case 0: client.sendData("y0"); break
-                case 1: client.sendData("y1"); break
-                case 2: client.sendData("y2"); break
-                case 3: client.sendData("y3"); break
-                default: break
-                }
-            }
-        }
-    }
-
-    // Calibration
-    Image {
-        x: 690 * pw; y: 260 * ph
-        width: 100 * pw; height: 40 * ph
-        source: calibration_mouseArea.pressed ? "qrc:/image/calibration_pressed.png"
-                                              : "qrc:/image/calibration.png"
-
-        MouseArea {
-            id: calibration_mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            onClicked: {
-                switch ( currentIndex )
-                {
-                case 0: client.sendData("z0"); break
-                case 1: client.sendData("z1"); break
-                case 2: client.sendData("z2"); break
-                case 3: client.sendData("z3"); break
-                default: break
-                }
-            }
-        }
-    }
-
 }

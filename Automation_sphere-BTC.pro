@@ -36,6 +36,8 @@ HEADERS += \
 
 TARGET = Sirius-Sphere
 
+QT += widgets
+
 QT += bluetooth
 
 QT += androidextras

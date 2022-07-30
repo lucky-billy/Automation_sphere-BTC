@@ -1,6 +1,13 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
-        <file>TransparentMask.qml</file>
+        <file>Component/QYButton.qml</file>
+        <file>Component/QYCombobox.qml</file>
+        <file>Component/QYCheckBoxOppisite.qml</file>
+        <file>Component/QYRadioButton.qml</file>
+        <file>Component/QYText.qml</file>
+        <file>Component/QYTextEdit.qml</file>
+        <file>Component/QYSpinBox.qml</file>
+        <file>Component/QYGroupBox.qml</file>
     </qresource>
 </RCC>
