@@ -6,7 +6,7 @@ QYBlueToothClient::QYBlueToothClient(QObject *parent) : QObject(parent)
     m_socket = new QBluetoothSocket(QBluetoothServiceInfo::RfcommProtocol, this);
 
     connect(m_socket, &QBluetoothSocket::connected, [&](){ emit sendMessage(1); });
-    connect(m_socket, &QBluetoothSocket::disconnected, [&](){ emit sendMessage(2); m_socket->deleteLater(); });
+    connect(m_socket, &QBluetoothSocket::disconnected, [&](){ emit sendMessage(2); });
     connect(m_socket, &QBluetoothSocket::readyRead, [&](){ readData(); });
 
 
@@ -22,6 +22,7 @@ QYBlueToothClient::~QYBlueToothClient()
 {
     if ( m_socket != nullptr ) {
         m_socket->deleteLater();
+        m_socket = nullptr;
     }
 }
 
@@ -40,9 +41,9 @@ void QYBlueToothClient::findNewDevice(const QBluetoothDeviceInfo &info)
 {
     QBluetoothDeviceInfo::MajorDeviceClass majorDeviceClass = info.majorDeviceClass();
     if ( majorDeviceClass == QBluetoothDeviceInfo::ComputerDevice ) {
-        qDebug() << "name: " + info.name();
-        qDebug() << "address: " + info.address().toString();
-        qDebug() << "deviceUuid: " + info.deviceUuid().toString();
+//        qDebug() << "name: " + info.name();
+//        qDebug() << "address: " + info.address().toString();
+//        qDebug() << "deviceUuid: " + info.deviceUuid().toString();
 
         if ( !m_socket->isOpen() ) {
             // 蓝牙串口通信服务的UUID码 "00001101-0000-1000-8000-00805F9B34FB"

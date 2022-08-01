@@ -28,7 +28,7 @@ Rectangle {
         font.pixelSize: pixelSize
         verticalAlignment: Text.AlignVCenter
         horizontalAlignment: Text.AlignLeft
-        renderType: isQtRendering ? Text.QtRendering : Text.NativeRendering
+        renderType: Text.QtRendering
         elide: Text.ElideRight
         color: enabled ? m_skin.menuTextColor : m_skin.unenableTextColor
         text: spinBoxPrefix
@@ -71,7 +71,7 @@ Rectangle {
             font.pixelSize: pixelSize + 2
             horizontalAlignment: TextInput.AlignLeft
             verticalAlignment: TextInput.AlignVCenter
-            renderType: isQtRendering ? Text.QtRendering : Text.NativeRendering
+            renderType: Text.QtRendering
             maximumLength: 8
             cursorVisible: false
             selectByMouse: true
@@ -124,7 +124,7 @@ Rectangle {
             font.pixelSize: pixelSize
             verticalAlignment: Text.AlignVCenter
             horizontalAlignment: Text.AlignLeft
-            renderType: isQtRendering ? Text.QtRendering : Text.NativeRendering
+            renderType: Text.QtRendering
             elide: Text.ElideRight
             color: enabled ? m_skin.menuTextColor : m_skin.unenableTextColor
             text: spinBoxSuffix

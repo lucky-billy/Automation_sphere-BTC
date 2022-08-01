@@ -58,7 +58,7 @@ Rectangle {
         font.pixelSize: pixelSize
         verticalAlignment: Text.AlignVCenter
         horizontalAlignment: showInCenter ? Text.AlignHCenter : Text.AlignLeft
-        renderType: isQtRendering ? Text.QtRendering : Text.NativeRendering
+        renderType: Text.QtRendering
         elide: Text.ElideRight
         color: enabled ? m_skin.menuTextColor : m_skin.unenableTextColor
     }

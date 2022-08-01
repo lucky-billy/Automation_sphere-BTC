@@ -1,4 +1,4 @@
-import QtQuick 2.12
+﻿import QtQuick 2.12
 
 // 自定义文本框
 Text {
@@ -8,7 +8,7 @@ Text {
     font.pixelSize: pixelSize
     verticalAlignment: Text.AlignVCenter
     horizontalAlignment: Text.AlignLeft
-    renderType: isQtRendering ? Text.QtRendering : Text.NativeRendering
+    renderType: Text.QtRendering
     elide: Text.ElideRight
     color: usePromptColor ? m_skin.textPromptColor : m_skin.menuTextColor
 

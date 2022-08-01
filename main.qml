@@ -67,30 +67,91 @@ Window {
 
         onCallQmlReciveData: {
             var list = data.split(",")
-            var type = data[0]
+            var type = list[0]
 
             // 初始化界面
             if ( type === "currentState" ) {
-                leftSpeedCombobox.currentIndex = data[1]
-                rightSpeedCombobox.currentIndex = data[2]
-                rightPosList[0] = data[3]
-                rightPosList[1] = data[4]
-                rightPosList[2] = data[5]
-                rightPosList[3] = data[6]
-                rightPosList[4] = data[7]
-                leftPosList[0] = data[8]
-                leftPosList[1] = data[9]
-                leftPosList[2] = data[10]
-                leftPosList[3] = data[11]
-                leftPosList[4] = data[12]
-                spaceList[0] = data[13]
-                spaceList[1] = data[14]
-                spaceList[2] = data[15]
-                spaceList[3] = data[16]
-                spaceList[4] = data[17]
-                locateCheckBox.isChecked = data[18] === 1
-                flipCheckBox.isChecked = data[19] === 1
-                flipLocateCheckBox.isChecked = data[20] === 1
+                leftSpeedCombobox.currentIndex = Number(list[1])
+                rightSpeedCombobox.currentIndex = Number(list[2])
+                rightPosList[0] = Number(list[3])
+                rightPosList[1] = Number(list[4])
+                rightPosList[2] = Number(list[5])
+                rightPosList[3] = Number(list[6])
+                rightPosList[4] = Number(list[7])
+                leftPosList[0] = Number(list[8])
+                leftPosList[1] = Number(list[9])
+                leftPosList[2] = Number(list[10])
+                leftPosList[3] = Number(list[11])
+                leftPosList[4] = Number(list[12])
+                spaceList[0] = Number(list[13])
+                spaceList[1] = Number(list[14])
+                spaceList[2] = Number(list[15])
+                spaceList[3] = Number(list[16])
+                spaceList[4] = Number(list[17])
+                locateCheckBox.isChecked = Number(list[18]) === 1
+                flipCheckBox.isChecked = Number(list[19]) === 1
+                flipLocateCheckBox.isChecked = Number(list[20]) === 1
+
+                rightPos.state = rightPosList[rightPosCombobox.currentIndex] === 1 ? 2 : 0
+                leftPos.state = leftPosList[leftPosCombobox.currentIndex] === 1 ? 2 : 0
+                spacePos.state = spaceList[spaceCombobox.currentIndex] === 1 ? 2 : 0
+            }
+
+            else if ( type === "changeLeftSpeed" ) {
+                // 修改左侧速度
+                leftSpeedCombobox.currentIndex = Number(list[1])
+            }
+
+            else if ( type === "changeRightSpeed" ) {
+                // 修改右侧速度
+                rightSpeedCombobox.currentIndex = Number(list[1])
+            }
+
+            else if ( type === "rightPosSaveCheck" ) {
+                // 右侧点标定
+                var index = Number(list[1])
+                var value = Number(list[2])
+                rightPosList[index] = value
+                rightPos.state = rightPosList[rightPosCombobox.currentIndex] === 1 ? 2 : 0
+            }
+
+            else if ( type === "leftPosSaveCheck" ) {
+                // 左侧点标定
+                index = Number(list[1])
+                value = Number(list[2])
+                leftPosList[index] = value
+                leftPos.state = leftPosList[leftPosCombobox.currentIndex] === 1 ? 2 : 0
+            }
+
+            else if ( type === "spacePosBCheck" ) {
+                // 间距标定
+                index = Number(list[1])
+                value = Number(list[2])
+                spaceList[index] = value
+                spacePos.state = spaceList[spaceCombobox.currentIndex] === 1 ? 2 : 0
+            }
+
+            else if ( type === "locateCheckBox" ) {
+                // 定位气缸
+                locateCheckBox.isChecked = Number(list[1]) === 1
+            }
+            else if ( type === "flipCheckBox" ) {
+                // 翻面气缸
+                flipCheckBox.isChecked = Number(list[1]) === 1
+            }
+            else if ( type === "flipLocateCheckBox" ) {
+                // 翻面定位
+                flipLocateCheckBox.isChecked = Number(list[1]) === 1
+            }
+            else if ( type === "zAxis" ) {
+                // Z 轴气缸
+                zAxisCombobox.currentIndex = Number(list[1])
+                zAxisCheckBox.isChecked = Number(list[2]) === 1
+            }
+            else if ( type === "vacuum" ) {
+                // 抽气
+                vacuumCombobox.currentIndex = Number(list[1])
+                vacuumCheckBox.isChecked = Number(list[2]) === 1
             }
         }
     }
@@ -144,7 +205,7 @@ Window {
                         model: ["高 速", "中 速", "低 速", "超低速"]
                         font.family: "微软雅黑"
                         font.pixelSize: 14
-                        onCurrentIndexChanged: {}
+                        onCurrentIndexChanged: { client.sendData("changeLeftSpeed," + currentIndex) }
                     }
                 }
 
@@ -173,9 +234,11 @@ Window {
                             anchors.fill: parent
                             onPressed: {
                                 parent.color = m_skin.buttonPressColor
+                                client.sendData("llxMove")
                             }
                             onReleased: {
                                 parent.color = m_skin.unenableTextColor
+                                client.sendData("llxStop")
                             }
                         }
                     }
@@ -196,9 +259,11 @@ Window {
                             anchors.fill: parent
                             onPressed: {
                                 parent.color = m_skin.buttonPressColor
+                                client.sendData("lrxMove")
                             }
                             onReleased: {
                                 parent.color = m_skin.unenableTextColor
+                                client.sendData("lrxStop")
                             }
                         }
                     }
@@ -229,9 +294,11 @@ Window {
                             anchors.fill: parent
                             onPressed: {
                                 parent.color = m_skin.buttonPressColor
+                                client.sendData("luyMove")
                             }
                             onReleased: {
                                 parent.color = m_skin.unenableTextColor
+                                client.sendData("luyStop")
                             }
                         }
                     }
@@ -252,9 +319,11 @@ Window {
                             anchors.fill: parent
                             onPressed: {
                                 parent.color = m_skin.buttonPressColor
+                                client.sendData("ldyMove")
                             }
                             onReleased: {
                                 parent.color = m_skin.unenableTextColor
+                                client.sendData("ldyStop")
                             }
                         }
                     }
@@ -307,7 +376,7 @@ Window {
                         model: ["高 速", "中 速", "低 速", "超低速"]
                         font.family: "微软雅黑"
                         font.pixelSize: 14
-                        onCurrentIndexChanged: {}
+                        onCurrentIndexChanged: { client.sendData("changeRightSpeed," + currentIndex) }
                     }
                 }
 
@@ -336,9 +405,11 @@ Window {
                             anchors.fill: parent
                             onPressed: {
                                 parent.color = m_skin.buttonPressColor
+                                client.sendData("rlxMove")
                             }
                             onReleased: {
                                 parent.color = m_skin.unenableTextColor
+                                client.sendData("rlxStop")
                             }
                         }
                     }
@@ -359,9 +430,11 @@ Window {
                             anchors.fill: parent
                             onPressed: {
                                 parent.color = m_skin.buttonPressColor
+                                client.sendData("rrxMove")
                             }
                             onReleased: {
                                 parent.color = m_skin.unenableTextColor
+                                client.sendData("rrxStop")
                             }
                         }
                     }
@@ -392,9 +465,11 @@ Window {
                             anchors.fill: parent
                             onPressed: {
                                 parent.color = m_skin.buttonPressColor
+                                client.sendData("ruyMove")
                             }
                             onReleased: {
                                 parent.color = m_skin.unenableTextColor
+                                client.sendData("ruyStop")
                             }
                         }
                     }
@@ -415,9 +490,11 @@ Window {
                             anchors.fill: parent
                             onPressed: {
                                 parent.color = m_skin.buttonPressColor
+                                client.sendData("rdyMove")
                             }
                             onReleased: {
                                 parent.color = m_skin.unenableTextColor
+                                client.sendData("rdyStop")
                             }
                         }
                     }
@@ -459,18 +536,46 @@ Window {
                     model: ["安全点", "初始点", "定位点", "测量点", "放料点"]
                     font.family: "微软雅黑"
                     font.pixelSize: 14
+                    onCurrentIndexChanged: rightPos.state = rightPosList[rightPosCombobox.currentIndex] === 1 ? 2 : 0
+                }
+
+                // 同心圆 状态标志
+                Rectangle {
+                    width: root.itemHeight; height: root.itemHeight
+                    radius: height
+                    color: "transparent"
+                    border.color: rightPos.color
+                    border.width: 2
+
+                    Rectangle {
+                        id: rightPos
+                        x: root.itemHeight / 4; y: root.itemHeight / 4
+                        width: root.itemHeight / 2; height: root.itemHeight / 2
+                        radius: root.itemHeight / 2
+                        color: {
+                            switch ( rightPos.state )
+                            {
+                            case 0: m_skin.separatorLineColor; break
+                            case 1: "#FFFF00"; break
+                            case 2: "#00FF00"; break
+                            default: break
+                            }
+                        }
+
+                        property int state: 0
+                    }
                 }
 
                 QYButton {
                     width: root.itemWidth; height: root.itemHeight
                     content: "移 动"
-                    onSelected: {}
+                    onSelected: { client.sendData("rightPosMove," + rightPosCombobox.currentIndex) }
                 }
 
                 QYButton {
                     width: root.itemWidth; height: root.itemHeight
                     content: "保 存"
-                    onSelected: {}
+                    onSelected: { client.sendData("rightPosSave," + rightPosCombobox.currentIndex) }
                 }
             }
 
@@ -490,18 +595,46 @@ Window {
                     model: ["安全点", "OK 初始点", "NG 初始点", "测量点", "取料点"]
                     font.family: "微软雅黑"
                     font.pixelSize: 14
+                    onCurrentIndexChanged: leftPos.state = leftPosList[leftPosCombobox.currentIndex] === 1 ? 2 : 0
+                }
+
+                // 同心圆 状态标志
+                Rectangle {
+                    width: root.itemHeight; height: root.itemHeight
+                    radius: height
+                    color: "transparent"
+                    border.color: leftPos.color
+                    border.width: 2
+
+                    Rectangle {
+                        id: leftPos
+                        x: root.itemHeight / 4; y: root.itemHeight / 4
+                        width: root.itemHeight / 2; height: root.itemHeight / 2
+                        radius: root.itemHeight / 2
+                        color: {
+                            switch ( leftPos.state )
+                            {
+                            case 0: m_skin.separatorLineColor; break
+                            case 1: "#FFFF00"; break
+                            case 2: "#00FF00"; break
+                            default: break
+                            }
+                        }
+
+                        property int state: 0
+                    }
                 }
 
                 QYButton {
                     width: root.itemWidth; height: root.itemHeight
                     content: "移 动"
-                    onSelected: {}
+                    onSelected: { client.sendData("leftPosMove," + leftPosCombobox.currentIndex) }
                 }
 
                 QYButton {
                     width: root.itemWidth; height: root.itemHeight
                     content: "保 存"
-                    onSelected: {}
+                    onSelected: { client.sendData("leftPosSave," + leftPosCombobox.currentIndex) }
                 }
             }
 
@@ -521,6 +654,7 @@ Window {
                     model: ["镜片行间距", "镜片列间距", "料盘行间距", "料盘列间距", "吸盘间距"]
                     font.family: "微软雅黑"
                     font.pixelSize: 14
+                    onCurrentIndexChanged: spacePos.state = spaceList[spaceCombobox.currentIndex] === 1 ? 2 : 0
                 }
 
                 // 同心圆 状态标志
@@ -528,15 +662,25 @@ Window {
                     width: root.itemHeight; height: root.itemHeight
                     radius: height
                     color: "transparent"
-                    border.color: lineSpacingB.color
+                    border.color: spacePos.color
                     border.width: 2
 
                     Rectangle {
-                        id: lineSpacingB
+                        id: spacePos
                         x: root.itemHeight / 4; y: root.itemHeight / 4
                         width: root.itemHeight / 2; height: root.itemHeight / 2
                         radius: root.itemHeight / 2
-                        color: m_skin.separatorLineColor
+                        color: {
+                            switch ( spacePos.state )
+                            {
+                            case 0: m_skin.separatorLineColor; break
+                            case 1: "#FFFF00"; break
+                            case 2: "#00FF00"; break
+                            default: break
+                            }
+                        }
+
+                        property int state: 0
                     }
                 }
 
@@ -545,7 +689,8 @@ Window {
                     width: root.itemWidth; height: root.itemHeight
                     content: "位置 A"
                     onSelected: {
-                        lineSpacingB.color = "#FFFF00"
+                        spacePos.state = 1
+                        client.sendData("spacePosA," + spaceCombobox.currentIndex)
                     }
                 }
 
@@ -553,9 +698,7 @@ Window {
                 QYButton {
                     width: root.itemWidth; height: root.itemHeight
                     content: "位置 B"
-                    onSelected: {
-                        lineSpacingB.color = "#00FF00"
-                    }
+                    onSelected: { client.sendData("spacePosB," + spaceCombobox.currentIndex) }
                 }
             }
 
@@ -573,7 +716,7 @@ Window {
                     width: root.itemWidth * 2; height: root.itemHeight
                     prefix: "夹紧"
                     suffix: "释放"
-                    onIsCheckedChanged: {}
+                    onIsCheckedChanged: { client.sendData("locateCheckBox," + String(isChecked ? 1 : 0)) }
                 }
             }
 
@@ -591,7 +734,7 @@ Window {
                     width: root.itemWidth * 2; height: root.itemHeight
                     prefix: "向左"
                     suffix: "向右"
-                    onIsCheckedChanged: {}
+                    onIsCheckedChanged: { client.sendData("flipCheckBox," + String(isChecked ? 1 : 0)) }
                 }
             }
 
@@ -609,11 +752,11 @@ Window {
                     width: root.itemWidth * 2; height: root.itemHeight
                     prefix: "夹紧"
                     suffix: "释放"
-                    onIsCheckedChanged: {}
+                    onIsCheckedChanged: { client.sendData("flipLocateCheckBox," + String(isChecked ? 1 : 0)) }
                 }
             }
 
-            // 气缸升降
+            // Z 轴气缸
             Row {
                 spacing: 10
 
@@ -631,10 +774,11 @@ Window {
                 }
 
                 QYCheckBoxOppisite {
+                    id: zAxisCheckBox
                     width: root.itemWidth * 2; height: root.itemHeight
                     prefix: "上升"
                     suffix: "下降"
-                    onIsCheckedChanged: {}
+                    onIsCheckedChanged: { client.sendData("zAxis," + zAxisCombobox.currentIndex + "," + String(isChecked ? 1 : 0)) }
                 }
             }
 
@@ -656,10 +800,11 @@ Window {
                 }
 
                 QYCheckBoxOppisite {
+                    id: vacuumCheckBox
                     width: root.itemWidth * 2; height: root.itemHeight
                     prefix: "打开"
                     suffix: "关闭"
-                    onIsCheckedChanged: {}
+                    onIsCheckedChanged: { client.sendData("vacuum," + vacuumCombobox.currentIndex + "," + String(isChecked ? 1 : 0)) }
                 }
             }
         }

@@ -1,4 +1,4 @@
-import QtQuick 2.0
+﻿import QtQuick 2.0
 import "../Component"
 
 // 自定义图像与文字结合的按钮，可通用
@@ -41,7 +41,7 @@ Rectangle {
         verticalAlignment: Text.AlignVCenter
         horizontalAlignment: onlyText ? Text.AlignHCenter : Text.AlignLeft
         elide: Text.ElideRight
-        renderType: isQtRendering ? Text.QtRendering : Text.NativeRendering
+        renderType: Text.QtRendering
         color: parent.enabled ? m_skin.menuTextColor : m_skin.unenableTextColor
     }
 

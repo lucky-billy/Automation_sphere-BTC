@@ -1,4 +1,4 @@
-import QtQuick 2.0
+﻿import QtQuick 2.0
 
 // 自定义组合框
 Rectangle {
@@ -21,7 +21,7 @@ Rectangle {
             font.pixelSize: pixelSize
             horizontalAlignment: Text.AlignLeft
             verticalAlignment: Text.AlignVCenter
-            renderType: isQtRendering ? Text.QtRendering : Text.NativeRendering
+            renderType: Text.QtRendering
             elide: Text.ElideRight
             color: m_skin.menuTextColor
             text: title

@@ -1,4 +1,4 @@
-import QtQuick 2.12
+﻿import QtQuick 2.12
 import QtQuick.Controls 2.12
 
 // 自定义下拉框
@@ -40,7 +40,7 @@ ComboBox {
             font: comboBox.font
             elide: Text.ElideRight
             leftPadding: comboBox.leftPadding
-            renderType: isQtRendering ? Text.QtRendering : Text.NativeRendering
+            renderType: Text.QtRendering
             color: comboBox.fontColor
             text: modelData
         }
@@ -83,7 +83,7 @@ ComboBox {
             color: comboBox.fontColor
             verticalAlignment: Text.AlignVCenter
             horizontalAlignment: Text.AlignLeft
-            renderType: isQtRendering ? Text.QtRendering : Text.NativeRendering
+            renderType: Text.QtRendering
             leftPadding: comboBox.leftPadding
             text: comboBox.editable ? "" : comboBox.displayText
             enabled: comboBox.editable
