@@ -14,6 +14,10 @@ Window {
     property real itemWidth: 90
     property real itemHeight: 30
 
+    property var leftPosList: [0,0,0,0,0]
+    property var rightPosList: [0,0,0,0,0]
+    property var spaceList: [0,0,0,0,0]
+
     Component.onCompleted: {
         m_skin = getSkin()
 
@@ -61,7 +65,34 @@ Window {
             }
         }
 
-        onCallQmlReciveData: {}
+        onCallQmlReciveData: {
+            var list = data.split(",")
+            var type = data[0]
+
+            // 初始化界面
+            if ( type === "currentState" ) {
+                leftSpeedCombobox.currentIndex = data[1]
+                rightSpeedCombobox.currentIndex = data[2]
+                rightPosList[0] = data[3]
+                rightPosList[1] = data[4]
+                rightPosList[2] = data[5]
+                rightPosList[3] = data[6]
+                rightPosList[4] = data[7]
+                leftPosList[0] = data[8]
+                leftPosList[1] = data[9]
+                leftPosList[2] = data[10]
+                leftPosList[3] = data[11]
+                leftPosList[4] = data[12]
+                spaceList[0] = data[13]
+                spaceList[1] = data[14]
+                spaceList[2] = data[15]
+                spaceList[3] = data[16]
+                spaceList[4] = data[17]
+                locateCheckBox.isChecked = data[18] === 1
+                flipCheckBox.isChecked = data[19] === 1
+                flipLocateCheckBox.isChecked = data[20] === 1
+            }
+        }
     }
 
     // 主界面
@@ -538,6 +569,7 @@ Window {
                 }
 
                 QYCheckBoxOppisite {
+                    id: locateCheckBox
                     width: root.itemWidth * 2; height: root.itemHeight
                     prefix: "夹紧"
                     suffix: "释放"
@@ -555,6 +587,7 @@ Window {
                 }
 
                 QYCheckBoxOppisite {
+                    id: flipCheckBox
                     width: root.itemWidth * 2; height: root.itemHeight
                     prefix: "向左"
                     suffix: "向右"
@@ -572,6 +605,7 @@ Window {
                 }
 
                 QYCheckBoxOppisite {
+                    id: flipLocateCheckBox
                     width: root.itemWidth * 2; height: root.itemHeight
                     prefix: "夹紧"
                     suffix: "释放"
