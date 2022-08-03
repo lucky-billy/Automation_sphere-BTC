@@ -91,6 +91,10 @@ Window {
                 locateCheckBox.isChecked = Number(list[18]) === 1
                 flipCheckBox.isChecked = Number(list[19]) === 1
                 flipLocateCheckBox.isChecked = Number(list[20]) === 1
+                zAxisCombobox.currentIndex = Number(list[21])
+                zAxisCheckBox.isChecked = Number(list[22]) === 1
+                vacuumCombobox.currentIndex = Number(list[23])
+                vacuumCheckBox.isChecked = Number(list[24]) === 1
 
                 rightPos.state = rightPosList[rightPosCombobox.currentIndex] === 1 ? 2 : 0
                 leftPos.state = leftPosList[leftPosCombobox.currentIndex] === 1 ? 2 : 0
@@ -690,6 +694,7 @@ Window {
                     content: "位置 A"
                     onSelected: {
                         spacePos.state = 1
+                        spaceCombobox.enabled = false
                         client.sendData("spacePosA," + spaceCombobox.currentIndex)
                     }
                 }
@@ -698,7 +703,10 @@ Window {
                 QYButton {
                     width: root.itemWidth; height: root.itemHeight
                     content: "位置 B"
-                    onSelected: { client.sendData("spacePosB," + spaceCombobox.currentIndex) }
+                    onSelected: {
+                        spaceCombobox.enabled = true
+                        client.sendData("spacePosB," + spaceCombobox.currentIndex)
+                    }
                 }
             }
 
@@ -778,6 +786,7 @@ Window {
                     width: root.itemWidth * 2; height: root.itemHeight
                     prefix: "上升"
                     suffix: "下降"
+                    isChecked: true
                     onIsCheckedChanged: { client.sendData("zAxis," + zAxisCombobox.currentIndex + "," + String(isChecked ? 1 : 0)) }
                 }
             }
