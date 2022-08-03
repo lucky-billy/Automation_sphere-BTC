@@ -73,16 +73,16 @@ Window {
             if ( type === "currentState" ) {
                 leftSpeedCombobox.currentIndex = Number(list[1])
                 rightSpeedCombobox.currentIndex = Number(list[2])
-                rightPosList[0] = Number(list[3])
-                rightPosList[1] = Number(list[4])
-                rightPosList[2] = Number(list[5])
-                rightPosList[3] = Number(list[6])
-                rightPosList[4] = Number(list[7])
-                leftPosList[0] = Number(list[8])
-                leftPosList[1] = Number(list[9])
-                leftPosList[2] = Number(list[10])
-                leftPosList[3] = Number(list[11])
-                leftPosList[4] = Number(list[12])
+                leftPosList[0] = Number(list[3])
+                leftPosList[1] = Number(list[4])
+                leftPosList[2] = Number(list[5])
+                leftPosList[3] = Number(list[6])
+                leftPosList[4] = Number(list[7])
+                rightPosList[0] = Number(list[8])
+                rightPosList[1] = Number(list[9])
+                rightPosList[2] = Number(list[10])
+                rightPosList[3] = Number(list[11])
+                rightPosList[4] = Number(list[12])
                 spaceList[0] = Number(list[13])
                 spaceList[1] = Number(list[14])
                 spaceList[2] = Number(list[15])
@@ -111,20 +111,20 @@ Window {
                 rightSpeedCombobox.currentIndex = Number(list[1])
             }
 
-            else if ( type === "rightPosSaveCheck" ) {
-                // 右侧点标定
-                var index = Number(list[1])
-                var value = Number(list[2])
-                rightPosList[index] = value
-                rightPos.state = rightPosList[rightPosCombobox.currentIndex] === 1 ? 2 : 0
-            }
-
             else if ( type === "leftPosSaveCheck" ) {
                 // 左侧点标定
-                index = Number(list[1])
-                value = Number(list[2])
+                var index = Number(list[1])
+                var value = Number(list[2])
                 leftPosList[index] = value
                 leftPos.state = leftPosList[leftPosCombobox.currentIndex] === 1 ? 2 : 0
+            }
+
+            else if ( type === "rightPosSaveCheck" ) {
+                // 右侧点标定
+                index = Number(list[1])
+                value = Number(list[2])
+                rightPosList[index] = value
+                rightPos.state = rightPosList[rightPosCombobox.currentIndex] === 1 ? 2 : 0
             }
 
             else if ( type === "spacePosBCheck" ) {
@@ -524,65 +524,6 @@ Window {
             anchors.leftMargin: leftAxis.x + leftAxis.width + 24
             spacing: 10
 
-            // 右侧点标定
-            Row {
-                spacing: 10
-
-                QYText {
-                    width: root.itemWidth; height: root.itemHeight
-                    text: "右侧点标定 : "
-                }
-
-                QYCombobox {
-                    id: rightPosCombobox
-                    width: root.itemWidth * 1.3; height: root.itemHeight
-                    leftPadding: 10
-                    model: ["安全点", "初始点", "定位点", "测量点", "放料点"]
-                    font.family: "微软雅黑"
-                    font.pixelSize: 14
-                    onCurrentIndexChanged: rightPos.state = rightPosList[rightPosCombobox.currentIndex] === 1 ? 2 : 0
-                }
-
-                // 同心圆 状态标志
-                Rectangle {
-                    width: root.itemHeight; height: root.itemHeight
-                    radius: height
-                    color: "transparent"
-                    border.color: rightPos.color
-                    border.width: 2
-
-                    Rectangle {
-                        id: rightPos
-                        x: root.itemHeight / 4; y: root.itemHeight / 4
-                        width: root.itemHeight / 2; height: root.itemHeight / 2
-                        radius: root.itemHeight / 2
-                        color: {
-                            switch ( rightPos.state )
-                            {
-                            case 0: m_skin.separatorLineColor; break
-                            case 1: "#FFFF00"; break
-                            case 2: "#00FF00"; break
-                            default: break
-                            }
-                        }
-
-                        property int state: 0
-                    }
-                }
-
-                QYButton {
-                    width: root.itemWidth; height: root.itemHeight
-                    content: "移 动"
-                    onSelected: { client.sendData("rightPosMove," + rightPosCombobox.currentIndex) }
-                }
-
-                QYButton {
-                    width: root.itemWidth; height: root.itemHeight
-                    content: "保 存"
-                    onSelected: { client.sendData("rightPosSave," + rightPosCombobox.currentIndex) }
-                }
-            }
-
             // 左侧点标定
             Row {
                 spacing: 10
@@ -639,6 +580,65 @@ Window {
                     width: root.itemWidth; height: root.itemHeight
                     content: "保 存"
                     onSelected: { client.sendData("leftPosSave," + leftPosCombobox.currentIndex) }
+                }
+            }
+
+            // 右侧点标定
+            Row {
+                spacing: 10
+
+                QYText {
+                    width: root.itemWidth; height: root.itemHeight
+                    text: "右侧点标定 : "
+                }
+
+                QYCombobox {
+                    id: rightPosCombobox
+                    width: root.itemWidth * 1.3; height: root.itemHeight
+                    leftPadding: 10
+                    model: ["安全点", "初始点", "定位点", "测量点", "放料点"]
+                    font.family: "微软雅黑"
+                    font.pixelSize: 14
+                    onCurrentIndexChanged: rightPos.state = rightPosList[rightPosCombobox.currentIndex] === 1 ? 2 : 0
+                }
+
+                // 同心圆 状态标志
+                Rectangle {
+                    width: root.itemHeight; height: root.itemHeight
+                    radius: height
+                    color: "transparent"
+                    border.color: rightPos.color
+                    border.width: 2
+
+                    Rectangle {
+                        id: rightPos
+                        x: root.itemHeight / 4; y: root.itemHeight / 4
+                        width: root.itemHeight / 2; height: root.itemHeight / 2
+                        radius: root.itemHeight / 2
+                        color: {
+                            switch ( rightPos.state )
+                            {
+                            case 0: m_skin.separatorLineColor; break
+                            case 1: "#FFFF00"; break
+                            case 2: "#00FF00"; break
+                            default: break
+                            }
+                        }
+
+                        property int state: 0
+                    }
+                }
+
+                QYButton {
+                    width: root.itemWidth; height: root.itemHeight
+                    content: "移 动"
+                    onSelected: { client.sendData("rightPosMove," + rightPosCombobox.currentIndex) }
+                }
+
+                QYButton {
+                    width: root.itemWidth; height: root.itemHeight
+                    content: "保 存"
+                    onSelected: { client.sendData("rightPosSave," + rightPosCombobox.currentIndex) }
                 }
             }
 
