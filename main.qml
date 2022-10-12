@@ -14,7 +14,7 @@ Window {
     property real itemWidth: 90
     property real itemHeight: 30
 
-    property var leftPosList: [0,0,0,0,0]
+    property var leftPosList: [0,0,0,0]
     property var rightPosList: [0,0,0,0,0]
     property var spaceList: [0,0,0,0,0]
 
@@ -77,23 +77,22 @@ Window {
                 leftPosList[1] = Number(list[4])
                 leftPosList[2] = Number(list[5])
                 leftPosList[3] = Number(list[6])
-                leftPosList[4] = Number(list[7])
-                rightPosList[0] = Number(list[8])
-                rightPosList[1] = Number(list[9])
-                rightPosList[2] = Number(list[10])
-                rightPosList[3] = Number(list[11])
-                rightPosList[4] = Number(list[12])
-                spaceList[0] = Number(list[13])
-                spaceList[1] = Number(list[14])
-                spaceList[2] = Number(list[15])
-                spaceList[3] = Number(list[16])
-                locateCheckBox.isChecked = Number(list[17]) === 1
-                flipCheckBox.isChecked = Number(list[18]) === 1
-                flipLocateCheckBox.isChecked = Number(list[19]) === 1
-                zAxisCombobox.currentIndex = Number(list[20])
-                zAxisCheckBox.isChecked = Number(list[21]) === 1
-                vacuumCombobox.currentIndex = Number(list[22])
-                vacuumCheckBox.isChecked = Number(list[23]) === 1
+                rightPosList[0] = Number(list[7])
+                rightPosList[1] = Number(list[8])
+                rightPosList[2] = Number(list[9])
+                rightPosList[3] = Number(list[10])
+                rightPosList[4] = Number(list[11])
+                spaceList[0] = Number(list[12])
+                spaceList[1] = Number(list[13])
+                spaceList[2] = Number(list[14])
+                spaceList[3] = Number(list[15])
+                locateCheckBox.isChecked = Number(list[16]) === 1
+                flipCheckBox.isChecked = Number(list[17]) === 1
+                flipLocateCheckBox.isChecked = Number(list[18]) === 1
+                zAxisCombobox.currentIndex = Number(list[19])
+                zAxisCheckBox.isChecked = Number(list[20]) === 1
+                vacuumCombobox.currentIndex = Number(list[21])
+                vacuumCheckBox.isChecked = Number(list[22]) === 1
 
                 rightPos.state = rightPosList[rightPosCombobox.currentIndex] === 1 ? 2 : 0
                 leftPos.state = leftPosList[leftPosCombobox.currentIndex] === 1 ? 2 : 0
@@ -534,9 +533,8 @@ Window {
 
                 QYCombobox {
                     id: leftPosCombobox
-                    width: root.itemWidth * 1.3; height: root.itemHeight
-                    leftPadding: 10
-                    model: ["OK 初始点", "NG 初始点", "测量点 C", "测量点 D", "取料点"]
+                    width: root.itemWidth * 1.4; height: root.itemHeight
+                    model: ["NG_A 初始点", "测量点 C", "测量点 D", "取料点"]
                     font.family: "微软雅黑"
                     font.pixelSize: 14
                     onCurrentIndexChanged: leftPos.state = leftPosList[leftPosCombobox.currentIndex] === 1 ? 2 : 0
@@ -593,8 +591,7 @@ Window {
 
                 QYCombobox {
                     id: rightPosCombobox
-                    width: root.itemWidth * 1.3; height: root.itemHeight
-                    leftPadding: 10
+                    width: root.itemWidth * 1.4; height: root.itemHeight
                     model: ["初始点", "定位点", "测量点 A", "测量点 B", "放料点"]
                     font.family: "微软雅黑"
                     font.pixelSize: 14
@@ -652,8 +649,7 @@ Window {
 
                 QYCombobox {
                     id: spaceCombobox
-                    width: root.itemWidth * 1.3; height: root.itemHeight
-                    leftPadding: 10
+                    width: root.itemWidth * 1.4; height: root.itemHeight
                     model: ["镜片行间距", "镜片列间距", "料盘行间距", "料盘列间距"]
                     font.family: "微软雅黑"
                     font.pixelSize: 14
@@ -727,13 +723,13 @@ Window {
                 }
             }
 
-            // 翻面气缸
+            // 翻转气缸
             Row {
                 spacing: 10
 
                 QYText {
                     width: root.itemWidth; height: root.itemHeight
-                    text: "翻面气缸 :"
+                    text: "翻转气缸 :"
                 }
 
                 QYCheckBoxOppisite {
@@ -745,13 +741,13 @@ Window {
                 }
             }
 
-            // 翻面定位
+            // 翻转定位
             Row {
                 spacing: 10
 
                 QYText {
                     width: root.itemWidth; height: root.itemHeight
-                    text: "翻面定位 :"
+                    text: "翻转定位 :"
                 }
 
                 QYCheckBoxOppisite {
@@ -774,7 +770,7 @@ Window {
 
                 QYCombobox {
                     id: zAxisCombobox
-                    width: root.itemWidth; height: root.itemHeight
+                    width: root.itemWidth - 5; height: root.itemHeight
                     font.family: "微软雅黑"
                     font.pixelSize: 14
                     model: ["左", "右"]
@@ -801,7 +797,7 @@ Window {
 
                 QYCombobox {
                     id: vacuumCombobox
-                    width: root.itemWidth; height: root.itemHeight
+                    width: root.itemWidth - 5; height: root.itemHeight
                     font.family: "微软雅黑"
                     font.pixelSize: 14
                     model: ["左侧左", "左侧右", "右侧左", "右侧右"]
